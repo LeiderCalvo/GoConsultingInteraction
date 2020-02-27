@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoConsulting</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@0.10.2/lib/p5.js"></script>
+</head>
+    
+<body id="body" style="margin: 0;">
+<script>
+    let sketch = ( app ) => {
+        disciplinas = [
+            {name: 'Account Manager', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 2, color: '#E4B7E5', svg: 'card'},
+            {name: 'Android Developer', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#5ED4F7', svg: 'android'},
+            {name: 'iOS Developer', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#E34651', svg: 'apple'},
+            {name: 'Multimedia Engenier', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#A276FF', svg: 'conection'},
+            {name: 'Copywriter', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#E4B7E5', svg: 'pen'},
+            {name: 'UX/UI expert', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#E34651', svg: 'red'},
+            {name: 'Database Engenier', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 1, color: '#E34651', svg: 'db'},
+            {name: 'Digital Marketing Strategist', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#E4B7E5', svg: 'voice'},
+            {name: 'Web Designer', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#5ED4F7', svg: 'mouse'},
+            {name: 'Front-end/Back-end Developers', description: 'Lorem, ipsum dolor sit amet\n consectetur adipisicing elit.', size: 3, color: '#A276FF', svg: 'html'}
+        ];
+
+        particles = [];
+        fontRegular = null, fontBold= null;
+        
+        INTERVALTIME = 1000;
+        interval = null;
+        autoIndex = 0;
+
+        app.preload = () => {
+            fontRegular = app.loadFont('assets/Poppins-Regular.ttf');
+            fontBold = app.loadFont('assets/Poppins-Bold.ttf');
+        }
+
+        app.setup = () => {
+            let cnv = app.createCanvas(app.windowWidth, app.windowHeight);
+            cnv.parent('body');
+
+            disciplinas.map((elem, i) => {
+                let pos = app.createVector(0,1);
+                pos.rotate(((2*app.PI)/disciplinas.length)*i);
+                particles.push(new Particle(pos, elem.size, elem.color, elem.svg, app));
+            });
+
+            app.imageMode(app.CENTER);
+            app.textAlign(app.CENTER, app.CENTER);
+            app.textSize(14);
+
+            interval = setInterval( incrementInterval, INTERVALTIME);
+        }
+
+        function incrementInterval(){
+            particles.map(elem => elem.setAutoHover(false));
+            autoIndex + 1 === disciplinas.length ? autoIndex = 0 : autoIndex += 1;
+        }
+
+        app.draw = () => {
+            app.background('#E5E5E5');
+            app.push();
+            app.translate(app.width / 2, app.height / 2);
+
+            particles.map( (elem, i) => {
+                elem.paint();
+                elem.unHover();
+            });
+
+            userAction();
+            app.pop();
+        }
+
+        function userAction() {
+            let index = particles.findIndex( part => part.onHover === true );
+            if( index !== -1){
+                particles[autoIndex].setAutoHover(false);
+                clearInterval(interval);
+                interval = null;
+                paintText(index);
+                return;
+            }else{
+                //app.textFont(fontRegular);
+                //app.text('¡Haz click en los iconos\n para conocer a tu equipo!', 0, 0);
+                particles[autoIndex].setAutoHover(true);
+                if(interval === null)interval = setInterval(incrementInterval, INTERVALTIME);
+                paintText(autoIndex);
+                particles.map( elem => {elem.hover(); elem.move();} );
+            }
+        }
+
+        function paintText(index) {
+            app.fill(0);
+            app.textFont(fontBold);
+            app.text(disciplinas[index].name, 0, -20);
+            app.textFont(fontRegular);
+            app.text(disciplinas[index].description, 0, 20);
+        }
+
+        class Particle {
+            constructor(pos, r, color, svg, app){
+                this.app = app;
+                this.color = color;
+                pos.mult(240);
+                this.pos = pos;
+                this.r = app.map(r, 1,3, 40, 75);
+                this.speed = 0.003;
+                this.onHover = false;
+                this.svg = app.loadImage("assets/"+svg+".svg");
+                this.autoHover = false;
+            }
+
+            paint() {
+                app.noStroke();
+                app.fill( this.onHover || this.autoHover? this.color : '#2B303A');
+                app.circle(this.pos.x,this.pos.y,this.r);
+                app.image(this.svg, this.pos.x,this.pos.y);
+            }
+
+            move() {
+                !this.onHover && this.pos.rotate(this.speed);
+            }
+
+            hover() {
+                if(app.dist(this.pos.x, this.pos.y, app.mouseX-(app.width / 2), app.mouseY-(app.height / 2)) <= this.r/2) this.onHover = true;
+            }
+
+            unHover() {
+                if(app.dist(this.pos.x, this.pos.y, app.mouseX-(app.width / 2), app.mouseY-(app.height / 2)) >= this.r/2) this.onHover = false;
+            }
+
+            setAutoHover(val){
+                this.autoHover = val;
+            }
+        }
+    }
+    let myP5 = new p5(sketch);
+</script>
+</body>
+</html>
